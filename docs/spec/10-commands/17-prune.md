@@ -61,5 +61,8 @@ The command **shall** fail if:
 - `3`: Git failure
 - `4`: any other filesystem error
 - `7`: files were modified locally since last pull, and `--force` is not used
+- `12`: a specified component does not exist in the lock
+- `17`: the manifest does not exist or is not initialized
+- `18`: the manifest exists but could not be read, or its content is invalid
 - `21`: the lock does not exist or is invalid
 - `22`: the lock exists but can not be read

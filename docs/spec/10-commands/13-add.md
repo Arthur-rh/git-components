@@ -14,7 +14,7 @@ Adds the component into the manifest, by default `.git-components.yml`
 
 ### Arguments
 
-- component_name: the name of the component, **shall** match regex `[A-Za-z_][A-Za-z0-9_-]+`
+- component_name: the name of the component, **shall** match regex `[A-Za-z_][A-Za-z0-9_-]*`
 - repo_url: the url of the repository where the component lives
 - reference: the reference to use, has to be exactly one of either
   - branch=<branch_name>
@@ -66,4 +66,5 @@ The command **shall** fail if:
 - `8`: unexpected usage of option `--filter-glob/filter-re/exclude-glob/exclude-re pattern`
 - `11`: component is already present, and `--force` is not used
 - `17`: the manifest does not exist or is not initialized
+- `18`: the manifest exists but could not be read, or its content is invalid
 - `19`: the manifest exists but could not be edited

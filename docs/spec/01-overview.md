@@ -93,6 +93,8 @@ The tool recognizes the following files in the repository root:
 
 (as per `04-cli.md`)
 
+This section is a non-normative summary for orientation. `04-cli.md` is the authoritative definition of exit codes; if this summary and `04-cli.md` ever disagree, `04-cli.md` **shall** prevail.
+
 ### Success
 
 - `0` = success
@@ -117,19 +119,19 @@ The tool recognizes the following files in the repository root:
 
 - `11`: component is already present, and `--force` is not used
 - `12`: component does not exist, and `--silent` is not used
+- `13`: two components/rules tried importing a file in the same path (strict-mode)
 
 ### Reserved
 
-- `13`: reserved
 - `14`: reserved
- 
+
 ### Manifest errors
 
 - `15`: manifest and lock disagree, and `--update-lock` is not used
 - `16`: manifest already exists, and `--force` is not used
-- `17`: the manifest does nott exist or is not initialized
-- `18`: the manifest exists but could not be read
-- `19`: the manifest exists but could nott be edited
+- `17`: the manifest does not exist or is not initialized
+- `18`: the manifest exists but could not be read, or its content is invalid (see `02-manifest-format.md`)
+- `19`: the manifest exists but could not be edited
 - `20`: the manifest could not be created
 
 ### Lock errors

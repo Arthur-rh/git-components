@@ -33,7 +33,7 @@ components:
           - <pattern>
         exclude-glob:
           - <pattern>
-        # both exclude-re and exclude-glob can exist simultaneously and **shall** be combined as "exclude_or OR exclude-glob"
+        # both exclude-re and exclude-glob can exist simultaneously and **shall** be combined as "exclude-re OR exclude-glob"
     add-to-gitignore: <yaml boolean> | defaults to true
 ```
 
@@ -52,7 +52,7 @@ components:
 ## Component definition
 
 Each component definition **shall** be a YAML mapping.
-The component name **shall** match `[A-Za-z_][A-Za-z0-9_-]+`
+The component name **shall** match `[A-Za-z_][A-Za-z0-9_-]*`
 
 ### Required fields
 
@@ -116,22 +116,22 @@ Each entry in `imports` **shall** be a mapping with the following fields:
 - **May** refer to a directory or file
 - Interpreted relative to the destination repository root
 
-### `filter_*`
+### `filter-*`
 - Optional
 - Can be `filter-glob` or `filter-re`
 - List of regex strings or glob strings
-- The tool applies the rules relative to the root of the repository
-- The tool applies the rules after the mapping
+- The tool matches each rule against the file's path relative to the import rule's `from` root (i.e. the file's subpath within the imported directory tree, which is identical to its subpath under `to` since directory structure is preserved 1:1)
+- The tool applies the rules after computing the `from` → `to` mapping for the rule, but matches against the pre-mapping (source-relative) subpath as defined above
 - The tool combines the rules with an `OR` operator
 - If no `filter-*` rules are specified, the tool **shall** include all files (subject to exclude rules).
 
-### `exclude_*`
+### `exclude-*`
 - Optional
 - Can be `exclude-glob` or `exclude-re`
 - List of regex strings or glob strings
 - Each string is a pattern used to filter out files within the imported content
-- The tool applies the rules relative to the root of the repository
-- The tool applies the rules after the mapping
+- The tool matches each rule against the file's path relative to the import rule's `from` root, using the same subpath convention as `filter-*` above
+- The tool applies the rules after computing the `from` → `to` mapping for the rule
 - The tool combines the rules with an `OR` operator
 - If no `exclude-*` rules are specified, the tool **shall** not exclude any files.
 
@@ -157,7 +157,7 @@ Each entry in `imports` **shall** be a mapping with the following fields:
   - if the `destination` path is an **already existing file**, it **shall** return an error `a directory can not be copied inside a file`.
 - if the `source` is a *file*, it **shall** be copied to the `destination` path,
   - if the `destination` path is an **already existing directory**, it **shall** copy the file into the directory.
-  - **IMPORTANT NOTE**: using this behavior is discouraged as it can lead to inconsistant imports: if the directory does not exists beforehand, the file **shall** be copied as a file and **shall** take the name of its intended target directory.
+  - **IMPORTANT NOTE**: using this behavior is discouraged as it can lead to inconsistent imports: if the directory does not exists beforehand, the file **shall** be copied as a file and **shall** take the name of its intended target directory.
 
 ## Filter and exclude semantics
 
@@ -198,6 +198,7 @@ Component names:
 
 - The top most component in the file **shall** have the highest priority, then in a descending order from the manifest/lock.
 - If two component aim to import two separate files as source into the same destination file, the first component in the file **shall** have the priority, the next components to be imported **shall** not overwrite the files previously imported by a higher priority component.
+- Because `components` is a YAML mapping, and standard YAML mappings do not guarantee preservation of key order, implementations **shall** parse and represent the `components` mapping using an order-preserving structure (i.e. preserving the document order of keys as written in the manifest file) so that priority order can be determined unambiguously. Implementations **shall not** rely on a mapping representation that discards key order (e.g. sorting keys alphabetically).
 
 #### Between file mappings of a given component
 
@@ -230,7 +231,7 @@ components:
       - from: lib/
         to: vendor/utils/
         filter-glob:
-          - .*\.txt
+          - "*.txt"
     add-to-gitignore: yes
 ```
 
@@ -250,7 +251,9 @@ The manifest **shall** be rejected if:
 - an import rule lacks `from` or `to`
 - a path is absolute or escapes repository root semantics
 - `exclude-glob/exclude-re/filter-glob/filter-re` is present but is not a list of strings
-- `add-to-gitignore` is not in a boolean format (see : [Boolean Language-Independent Type for YAMLÖ Version 1.1 - tag:yaml.org,2002:bool](https://yaml.org/type/bool.html)) 
+- `add-to-gitignore` is not in a boolean format (see : [Boolean Language-Independent Type for YAML Version 1.1 - tag:yaml.org,2002:bool](https://yaml.org/type/bool.html))
+
+Any manifest rejected for the reasons above **shall** be reported by the CLI as "the manifest exists but could not be read, or its content is invalid" (see exit code `18` in `04-cli.md`).
 
 ## Unknown fields
 

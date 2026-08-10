@@ -28,7 +28,7 @@ When removing a component from the manifest, the command **shall** :
 
 - verify that the component exists
 - remove the entry from the manifest
-- notify user that the component was removed from the manifest but is still present in the lock and filesystem, and invite the user to perform `--prune`
+- notify user that the component was removed from the manifest but is still present in the lock and filesystem, and invite the user to run `git component prune`
 
 ## Success conditions
 
@@ -50,4 +50,5 @@ The command **shall** fail if:
 - `4`: any other filesystem error
 - `12`: component does not exist, and `--silent` is not used
 - `17`: the manifest does not exist or is not initialized
+- `18`: the manifest exists but could not be read, or its content is invalid
 - `19`: the manifest exists but could not be edited

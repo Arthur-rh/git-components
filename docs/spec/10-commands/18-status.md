@@ -59,5 +59,6 @@ The command **shall** fail if:
 - `1`: argument validation error
 - `2`: the command is not running inside an existing git repository
 - `3`: Git failure
+- `4`: any other filesystem error
 - `17`: the manifest does not exist or is not initialized
-- `18`: the manifest exists but could not be read
+- `18`: the manifest exists but could not be read, or its content is invalid

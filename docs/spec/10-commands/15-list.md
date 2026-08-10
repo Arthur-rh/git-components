@@ -56,4 +56,4 @@ The command **shall** fail if:
 - `4`: any other filesystem error
 - `12`: component does not exist, and `--silent` is not used
 - `17`: the manifest does not exist or is not initialized
-- `18`: the manifest exists but could not be read
+- `18`: the manifest exists but could not be read, or its content is invalid

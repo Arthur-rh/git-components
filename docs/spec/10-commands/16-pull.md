@@ -106,7 +106,7 @@ The command **shall** fail if:
 - If provided, the component does not exist in the manifest
 - Any underlying `git` command fails
 - Any other filesystem operation fails
-- Manifest and lock resolved commit hashes diagree, and `--update-lock` is not used 
+- Manifest and lock resolved commit hashes disagree, and neither `--update-lock` nor `--ignore-manifest` is used
 - A file from a component was modified locally since last pull (hash mismatch), and `--force` is not used.
 
 ## Exit codes
@@ -118,4 +118,7 @@ The command **shall** fail if:
 - `4`: any other filesystem error
 - `5`: the given regex/glob pattern is not valid
 - `7`: files were modified locally since last pull, and `--force` is not used
-- `15`: manifest and lock disagree, and neither `--update-lock` nor `--ignore-manifest` is not used
+- `12`: a specified component does not exist in the manifest (`pull` has no `--silent` option)
+- `15`: manifest and lock disagree, and neither `--update-lock` nor `--ignore-manifest` is used
+- `17`: the manifest does not exist or is not initialized
+- `18`: the manifest exists but could not be read, or its content is invalid

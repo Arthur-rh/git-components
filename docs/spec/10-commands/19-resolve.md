@@ -44,6 +44,7 @@ The command **shall** fail if:
 - The provided manifest does not exist or can not be read
 - The manifest format is invalid (see `02-manifest-format.md`)
 - Any `git` command fails
+- Any other filesystem operation fails (e.g. the lock file could not be written)
 
 ## Exit codes
 
@@ -51,5 +52,6 @@ The command **shall** fail if:
 - `1`: argument validation error
 - `2`: the command is not running inside an existing git repository
 - `3`: Git failure
+- `4`: any other filesystem error (e.g. the lock file could not be written)
 - `17`: the manifest does not exist or is not initialized
-- `19`: the manifest exists but could not be edited
+- `18`: the manifest exists but could not be read, or its content is invalid

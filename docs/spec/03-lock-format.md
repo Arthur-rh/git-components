@@ -46,6 +46,7 @@ components:
 ### `components`
 - Required
 - Mapping from component name to locked component definition
+- The document order of keys under `components` **shall** match the priority order defined by the manifest (see *Priority order* in `02-manifest-format.md`), since `pull` processes components "in top-bottom order in the lock" (see `10-commands/16-pull.md`). Implementations **shall** parse and represent this mapping using an order-preserving structure.
 
 ## Locked component definition
 
@@ -97,10 +98,10 @@ imported-files:
 
 - Lists all files that should have been imported but were already imported by a higher priority component.
 - Stores who successfully imported the file as a value.
-- See ***TBD***
+- **shall** be a plain mapping from `<filepath>` to `<component>@<from>:<to>`, matching the top-level structure shown above (not a YAML list).
 ```yaml
-suppressed-files: 
-      - path/to/file2.txt: mylib@lib/path:path/to/file # because mylib already imports file2.txt in this path and has priority
+suppressed-files:
+      path/to/file2.txt: mylib@lib/path:path/to/file # because mylib already imports file2.txt in this path and has priority
 ```
 
 ## Relationship to manifest
