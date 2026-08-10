@@ -51,9 +51,9 @@ Open an issue in this repository describing the problem, including the manifest/
 ## Roadmap
 v1 subcommands (per [`docs/spec/04-cli.md`](docs/spec/04-cli.md)): `help`, `init`, `add`, `remove`, `pull`, `prune`, `list`, `status`, `resolve`. All nine are implemented, including cross-component/partial-pull priority conflict resolution, `.gitignore` management, and local-modification detection.
 
-Known gaps, worth tracking as follow-ups:
-- `status`'s output format is marked `***TBD***` in the spec itself (`docs/spec/10-commands/18-status.md`); the format implemented here is a placeholder pending an authoritative decision.
-- `pull`/`resolve` shell out to `git ls-remote`/`git clone` per invocation, with no local object-database caching, so repeated pulls of the same component re-clone it from scratch.
+`pull`/`resolve` still shell out to `git ls-remote` for commit resolution on every invocation (cheap, no object transfer), but checkout now uses a local mirror cache under `.git/git-components-cache/` (one per distinct `repository-url`, updated with `git fetch` rather than a fresh full clone each time) — see `docs/spec/10-commands/16-pull.md`.
+
+`status`'s output format was marked `***TBD***` in the spec; it's now decided and documented in `docs/spec/10-commands/18-status.md`.
 
 `order` is explicitly **not** part of v1 (see [`docs/spec/10-commands/20-order.md`](docs/spec/10-commands/20-order.md)) and is deferred to a later release.
 

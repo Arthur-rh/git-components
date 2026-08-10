@@ -23,6 +23,7 @@ def build_parser(subparsers):
 
 def run(args, parser) -> int:
     root = gitutil.find_repo_root()
+    git_dir = gitutil.find_git_dir(root)
     manifest_file = manifest.manifest_path(root, args.manifest_path)
     lock_file = lock.lock_path(root, args.lock_path)
 
@@ -66,7 +67,7 @@ def run(args, parser) -> int:
         entry.pop("suppressed-files", None)
 
         with tempfile.TemporaryDirectory(prefix="git-component-") as checkout_dir:
-            remote.checkout_commit(component["repository-url"], checkout_dir, entry["commit"])
+            remote.checkout_commit(git_dir, component["repository-url"], checkout_dir, entry["commit"])
             imported, suppressed = _materialize(
                 root, checkout_dir, name, component, priority[name], owners, data["components"], lock_components
             )

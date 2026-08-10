@@ -11,6 +11,11 @@ def run_git(cwd, *args):
     subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
 
 
+def rev_parse(cwd, ref="HEAD") -> str:
+    result = subprocess.run(["git", "rev-parse", ref], cwd=cwd, check=True, capture_output=True, text=True)
+    return result.stdout.strip()
+
+
 def write_file(path, content):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
