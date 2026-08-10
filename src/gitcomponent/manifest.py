@@ -124,6 +124,14 @@ def validate(data: Any) -> list[str]:
     return warnings
 
 
+def selector(component: dict) -> dict:
+    """Return the {branch|tag|commit: value} selector for a validated component."""
+    for key in REVISION_SELECTORS:
+        if key in component:
+            return {key: component[key]}
+    raise errors.ManifestInvalidError("component has no branch/tag/commit selector")
+
+
 def _validate_component_name(name: Any) -> None:
     if not isinstance(name, str) or not COMPONENT_NAME_RE.match(name):
         raise errors.ManifestInvalidError(f"invalid component name: {name!r}")

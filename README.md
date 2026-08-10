@@ -36,10 +36,10 @@ git component init
 git component add <name> <repo_url> branch=<branch> --map <src>:<dest>
 git component list [--all] [components...]
 git component remove <components...>
-git component pull [components...]      # not yet implemented
-git component prune [components...]     # not yet implemented
-git component status [--short]          # not yet implemented
-git component resolve [components...]   # not yet implemented
+git component pull [components...]
+git component prune [components...]
+git component status [--short]
+git component resolve [components...]
 git component help [command]
 ```
 
@@ -49,10 +49,11 @@ Full per-subcommand synopses and semantics live in [`docs/spec/10-commands/`](do
 Open an issue in this repository describing the problem, including the manifest/lock content involved and the exact command run.
 
 ## Roadmap
-v1 subcommands (per [`docs/spec/04-cli.md`](docs/spec/04-cli.md)): `help`, `init`, `add`, `remove`, `pull`, `prune`, `list`, `status`, `resolve`.
+v1 subcommands (per [`docs/spec/04-cli.md`](docs/spec/04-cli.md)): `help`, `init`, `add`, `remove`, `pull`, `prune`, `list`, `status`, `resolve`. All nine are implemented, including cross-component/partial-pull priority conflict resolution, `.gitignore` management, and local-modification detection.
 
-- Implemented: `help`, `init`, `add`, `remove`, `list`.
-- Scaffolded (argument parsing matches the spec; core logic still TODO): `pull`, `prune`, `status`, `resolve`.
+Known gaps, worth tracking as follow-ups:
+- `status`'s output format is marked `***TBD***` in the spec itself (`docs/spec/10-commands/18-status.md`); the format implemented here is a placeholder pending an authoritative decision.
+- `pull`/`resolve` shell out to `git ls-remote`/`git clone` per invocation, with no local object-database caching, so repeated pulls of the same component re-clone it from scratch.
 
 `order` is explicitly **not** part of v1 (see [`docs/spec/10-commands/20-order.md`](docs/spec/10-commands/20-order.md)) and is deferred to a later release.
 
@@ -66,4 +67,4 @@ Arthur Richelet
 ***TBD***
 
 ## Project status
-Specification complete for v1. Implementation in progress: manifest/lock handling and the `help`/`init`/`add`/`remove`/`list` subcommands are implemented; `pull`/`prune`/`status`/`resolve` are scaffolded but not yet functional.
+Specification complete for v1. All nine v1 subcommands are implemented and covered by an automated test suite (`make test`); see Roadmap for known gaps.

@@ -117,8 +117,6 @@ def test_help_known_command(repo, capsys):
     assert "add" in capsys.readouterr().out
 
 
-def test_pull_not_yet_implemented(repo):
+def test_pull_on_manifest_with_no_components_is_a_noop(repo):
     main(["init"])
-    from gitcomponent.commands.pull import EXIT_NOT_IMPLEMENTED
-
-    assert main(["pull"]) == EXIT_NOT_IMPLEMENTED
+    assert main(["pull"]) == errors.EXIT_SUCCESS

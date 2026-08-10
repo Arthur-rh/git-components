@@ -1,15 +1,10 @@
-"""`prune` subcommand (see docs/spec/10-commands/17-prune.md).
-
-NOT YET IMPLEMENTED: argument parsing and manifest/lock loading are wired
-up; the actual pruning ("Core behavior" steps 1-8) is still TODO.
-"""
+"""`prune` subcommand (see docs/spec/10-commands/17-prune.md)."""
 from __future__ import annotations
 
+import os
 import sys
 
-from .. import gitutil, lock, manifest
-
-EXIT_NOT_IMPLEMENTED = 99  # placeholder; not part of the spec's exit code table
+from .. import errors, fileops, gitutil, ignorefile, lock, manifest
 
 
 def build_parser(subparsers):
@@ -24,8 +19,44 @@ def build_parser(subparsers):
 
 def run(args, parser) -> int:
     root = gitutil.find_repo_root()
-    manifest.load(manifest.manifest_path(root, args.manifest_path))
-    lock.load(lock.lock_path(root, args.lock_path))
+    data, warnings = manifest.load(manifest.manifest_path(root, args.manifest_path))
+    for warning in warnings:
+        print(f"warning: {warning}", file=sys.stderr)
 
-    print("git component prune: not yet implemented", file=sys.stderr)
-    return EXIT_NOT_IMPLEMENTED
+    lock_file = lock.lock_path(root, args.lock_path)
+    lock_data = lock.load(lock_file)
+    lock_components = lock_data["components"]
+
+    obsolete = [name for name in lock_components if name not in data["components"]]
+
+    if args.components:
+        for name in args.components:
+            if name not in lock_components:
+                raise errors.ComponentNotFoundError(f"component {name!r} does not exist in the lock")
+        obsolete = [name for name in obsolete if name in args.components]
+
+    if not obsolete:
+        print("nothing to prune")
+        return errors.EXIT_SUCCESS
+
+    if not args.force:
+        fileops.check_local_modifications(root, lock_data, components=obsolete)
+
+    for name in obsolete:
+        entry = lock_components[name]
+        for dest in entry.get("imported-files", {}):
+            dest_abspath = os.path.join(root, dest)
+            fileops.remove_path(dest_abspath)
+            fileops.prune_empty_dirs(root, os.path.dirname(dest_abspath))
+        del lock_components[name]
+        if args.verbose:
+            print(f"pruned component {name!r}")
+
+    lock.save(lock_file, lock_data)
+
+    gitignore_path = os.path.join(root, ".gitignore")
+    base_lines = ignorefile.strip_generated_block(ignorefile.read_lines(gitignore_path))
+    ignorefile.write(gitignore_path, base_lines, ignorefile.entries_for(data, lock_data))
+
+    print(f"pruned {len(obsolete)} component(s)")
+    return errors.EXIT_SUCCESS
