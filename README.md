@@ -15,19 +15,38 @@ See [`docs/spec/`](docs/spec/) for the full specification: manifest and lock fil
 
 Requires Python 3.8+.
 
+**From source, via pip** (recommended — not yet published to the public PyPI index):
+
+```bash
+pip install .
+```
+
+This installs the `gitcomponent` package and puts a `git-component` executable on your `PATH` via the `[project.scripts]` entry point in `pyproject.toml` — which is exactly what lets Git find it and makes `git component ...` work as a real Git subcommand, alongside direct `git-component ...` invocation.
+
+**Standalone binary** (no Python required on the target machine):
+
 ```bash
 pip install -r requirements-dev.txt
 make build   # produces dist/git-component via PyInstaller
 ```
 
-Put the resulting `git-component` (`git-component.exe` on Windows) on your `PATH` so it can be invoked both as `git-component ...` and as `git component ...`.
+Put the resulting `git-component` (`git-component.exe` on Windows) on your `PATH`.
 
-For local development without building a binary:
+**For local development**, without installing anything onto `PATH`:
 
 ```bash
 pip install -r requirements-dev.txt
 python src/main.py <subcommand> [options]
 ```
+
+**Building distributable artifacts** (sdist + wheel, e.g. to hand to someone else or eventually publish):
+
+```bash
+make dist            # produces dist/*.tar.gz and dist/*.whl
+make publish-check   # validates them with `twine check` (no upload)
+```
+
+Actually publishing (`twine upload dist/*`) is a deliberate, one-way action and is intentionally not automated — run it yourself when ready.
 
 ## Usage
 
@@ -64,7 +83,7 @@ v1 subcommands (per [`docs/spec/04-cli.md`](docs/spec/04-cli.md)): `help`, `init
 Arthur Richelet
 
 ## License
-***TBD***
+[Apache License 2.0](LICENSE)
 
 ## Project status
 Specification complete for v1. All nine v1 subcommands are implemented and covered by an automated test suite (`make test`); see Roadmap for known gaps.

@@ -72,3 +72,8 @@ def main(argv: list[str]) -> int:
         prefix = f"git component {command}" if command else "git component"
         print(f"{prefix}: {exc}", file=sys.stderr)
         return exc.exit_code
+
+
+def run_cli() -> None:
+    """Console-script entry point (see pyproject.toml `[project.scripts]`)."""
+    sys.exit(main(sys.argv[1:]))

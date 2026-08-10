@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Entry point for the git-component CLI (see docs/spec/04-cli.md)."""
-import sys
+"""Dev entry point for running from a source checkout (see docs/spec/04-cli.md).
 
-from gitcomponent.cli import main
+The installed package instead exposes `git-component` via the
+`[project.scripts]` entry point in pyproject.toml (gitcomponent.cli:run_cli).
+"""
+from gitcomponent.cli import run_cli
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    run_cli()
