@@ -81,15 +81,29 @@ mirror-github:
   script:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - |
-      {
-        echo "-----BEGIN OPENSSH PRIVATE KEY-----"
-        echo "$GITHUB_DEPLOY_TOKEN" | fold -w 64
-        echo "-----END OPENSSH PRIVATE KEY-----"
-      } > ~/.ssh/github_deploy_key
-    - chmod 600 ~/.ssh/github_deploy_key
     - eval "$(ssh-agent -s)"
-    - ssh-add ~/.ssh/github_deploy_key
+    # GITHUB_DEPLOY_TOKEN's original key type (OpenSSH vs. legacy PEM
+    # RSA/EC) isn't recorded anywhere, so try each known header/footer
+    # pair until ssh-add accepts one, instead of hardcoding a guess.
+    - |
+      added=0
+      for hdr in "OPENSSH PRIVATE KEY" "RSA PRIVATE KEY" "EC PRIVATE KEY" "PRIVATE KEY"; do
+        {
+          echo "-----BEGIN $hdr-----"
+          echo "$GITHUB_DEPLOY_TOKEN" | fold -w 64
+          echo "-----END $hdr-----"
+        } > ~/.ssh/github_deploy_key
+        chmod 600 ~/.ssh/github_deploy_key
+        if ssh-add ~/.ssh/github_deploy_key 2>/dev/null; then
+          added=1
+          echo "Loaded GITHUB_DEPLOY_TOKEN as a '$hdr' key"
+          break
+        fi
+      done
+      if [ "$added" != "1" ]; then
+        echo "Could not load GITHUB_DEPLOY_TOKEN under any known private key format" >&2
+        exit 1
+      fi
     - ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
     - git remote add github-mirror "$GITHUB_MIRROR_URL"
     - git push github-mirror "HEAD:refs/heads/main" --force
