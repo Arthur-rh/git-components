@@ -67,7 +67,11 @@ gitlab-release:
 # whitespace — reconstructed below into a normal OpenSSH private key.
 mirror-github:
   stage: publish
-  image: alpine/git:latest
+  # alpine/git sets ENTRYPOINT ["git"], which breaks GitLab Runner's normal
+  # script execution (every command gets prefixed with `git`) unless reset.
+  image:
+    name: alpine/git:latest
+    entrypoint: [""]
   needs: ["test"]
   variables:
     GIT_STRATEGY: clone
