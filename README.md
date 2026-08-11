@@ -79,6 +79,33 @@ v1 subcommands (per [`docs/spec/04-cli.md`](docs/spec/04-cli.md)): `help`, `init
 ## Contributing
 [`docs/spec/`](docs/spec/) is the source of truth for behavior — implementation changes that diverge from it should update the spec first. `docs/spec/validate-error-codes.md` cross-checks exit-code documentation consistency across the spec files; run it after editing exit codes.
 
+## Releasing
+
+`main` is where development happens; `release` only ever holds commits that have been deliberately promoted from `main`. Tagging a commit on `release` triggers `.gitlab-ci.yml`, which runs the test suite, builds the package, then — in parallel — publishes to PyPI, creates a GitLab Release, and pushes that same commit (as `main`) plus the tag to the public GitHub mirror.
+
+To cut a release:
+
+```bash
+# 1. bump the version on main
+#    edit `version = "..."` in pyproject.toml, commit, push
+
+# 2. fast-forward release to main
+git checkout release
+git merge --ff-only main
+git push origin release
+
+# 3. tag it (must match pyproject.toml's version, with a `v` prefix) and push the tag
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+Pushing the tag is what triggers the pipeline — nothing publishes just from pushing to `release`.
+
+The pipeline depends on three GitLab CI/CD variables (Settings → CI/CD → Variables), configured on the project already except where noted:
+- `PYPI_API_TOKEN` (masked, protected) — a PyPI API token. For the very first release, this must be an account-scoped token, since the project won't exist on PyPI yet to scope a token to.
+- `GITHUB_MIRROR_URL` — the SSH URL of the public GitHub mirror (`git@github.com:owner/repo.git`).
+- `GITHUB_DEPLOY_KEY` (masked, protected) — an SSH deploy key (with write access) for the GitHub mirror, stored as GitLab requires: without its `-----BEGIN/END-----` markers and with internal line breaks stripped, since masked variables must be a single line with no whitespace. The pipeline reconstructs a normal OpenSSH private key from it.
+
 ## Authors and acknowledgment
 Arthur Richelet
 
