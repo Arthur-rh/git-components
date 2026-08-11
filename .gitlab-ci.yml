@@ -47,7 +47,7 @@ publish-pypi:
   needs: ["build"]
   script:
     - pip install twine
-    - TWINE_USERNAME=__token__ TWINE_PASSWORD="$PYPI_API_TOKEN" twine upload dist/*
+    - TWINE_USERNAME=__token__ TWINE_PASSWORD="$PYPI_PUBLISH_TOKEN" twine upload dist/*
 
 gitlab-release:
   stage: publish
@@ -61,7 +61,7 @@ gitlab-release:
 
 # Pushes this tag's commit to the public GitHub mirror (default branch
 # `main` there, matching GitHub convention, even though this branch is
-# `release` on GitLab). GITHUB_DEPLOY_KEY is stored without its
+# `release` on GitLab). GITHUB_DEPLOY_TOKEN is stored without its
 # -----BEGIN/END----- markers and with internal line breaks stripped,
 # because GitLab masked variables must be a single line with no
 # whitespace — reconstructed below into a normal OpenSSH private key.
@@ -80,7 +80,7 @@ mirror-github:
     - |
       {
         echo "-----BEGIN OPENSSH PRIVATE KEY-----"
-        echo "$GITHUB_DEPLOY_KEY" | fold -w 64
+        echo "$GITHUB_DEPLOY_TOKEN" | fold -w 64
         echo "-----END OPENSSH PRIVATE KEY-----"
       } > ~/.ssh/github_deploy_key
     - chmod 600 ~/.ssh/github_deploy_key
