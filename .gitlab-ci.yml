@@ -90,21 +90,21 @@ mirror-github:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - eval "$(ssh-agent -s)"
-    # `ssh-keygen -l -f` on the raw file said "not a public key file" --
-    # not just an unsupported algorithm, it isn't recognizable as a key
-    # at all. Likely the value is base64-encoded (whole key, headers
-    # included, as one blob -- a standard trick for single-line-safe
-    # secrets). Try decoding first; fall back to the raw file as-is.
+    # SAFE DIAGNOSTIC ONLY (temporary): structural info about the raw
+    # file -- byte/line counts, and a hex dump of just the first/last 40
+    # bytes (where PEM boilerplate headers live, never the base64 body's
+    # secret material) -- to figure out its actual format instead of
+    # guessing again. No secret bytes are printed.
     - |
-      if base64 -d "$GITHUB_DEPLOY_TOKEN" > ~/.ssh/github_deploy_key 2>/dev/null && grep -q "BEGIN.*PRIVATE KEY" ~/.ssh/github_deploy_key; then
-        echo "GITHUB_DEPLOY_TOKEN decodes from base64 to a private key; using the decoded form"
-      else
-        echo "GITHUB_DEPLOY_TOKEN does not decode to a recognizable key; using it as-is"
-        cp "$GITHUB_DEPLOY_TOKEN" ~/.ssh/github_deploy_key
-      fi
-      chmod 600 ~/.ssh/github_deploy_key
-    - ssh-keygen -l -f ~/.ssh/github_deploy_key || echo "ssh-keygen could not read key metadata either"
-    - ssh-add ~/.ssh/github_deploy_key
+      echo "byte count: $(wc -c < "$GITHUB_DEPLOY_TOKEN")"
+      echo "line count: $(wc -l < "$GITHUB_DEPLOY_TOKEN")"
+      echo "first 40 bytes (hex+ascii):"
+      head -c 40 "$GITHUB_DEPLOY_TOKEN" | od -An -c
+      echo "last 40 bytes (hex+ascii):"
+      tail -c 40 "$GITHUB_DEPLOY_TOKEN" | od -An -c
+      echo "contains 'PRIVATE KEY' anywhere: $(grep -c 'PRIVATE KEY' "$GITHUB_DEPLOY_TOKEN" 2>/dev/null || echo 0)"
+      echo "contains 'BEGIN' anywhere: $(grep -c 'BEGIN' "$GITHUB_DEPLOY_TOKEN" 2>/dev/null || echo 0)"
+    - exit 1  # stop here until the diagnostic above is reviewed
     - ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
     - git remote add github-mirror "$GITHUB_MIRROR_URL"
     - git push github-mirror "HEAD:refs/heads/main" --force
