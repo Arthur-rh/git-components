@@ -97,9 +97,10 @@ mirror-github:
     # literal value verbatim regardless of variable type. Reconstruct
     # a normal key file from it.
     - |
+      BODY=$(fold -w 64 "$GITHUB_DEPLOY_TOKEN")
       {
         echo "-----BEGIN OPENSSH PRIVATE KEY-----"
-        fold -w 64 "$GITHUB_DEPLOY_TOKEN"
+        printf '%s\n' "$BODY"
         echo "-----END OPENSSH PRIVATE KEY-----"
       } > ~/.ssh/github_deploy_key
       chmod 600 ~/.ssh/github_deploy_key
