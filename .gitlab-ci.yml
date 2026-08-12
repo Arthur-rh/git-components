@@ -45,6 +45,12 @@ publish-pypi:
   stage: publish
   image: python:3.11
   needs: ["build"]
+  # TEMPORARILY DISABLED while mirror-github is debugged: every retry
+  # here permanently burns a PyPI version (filenames can never be
+  # reused, even after project deletion). Remove this once mirror-github
+  # is confirmed working, so PyPI publishing resumes for real releases.
+  rules:
+    - when: never
   script:
     - pip install twine
     - TWINE_USERNAME=__token__ TWINE_PASSWORD="$PYPI_PUBLISH_TOKEN" twine upload dist/*
@@ -85,6 +91,9 @@ mirror-github:
     - chmod 700 ~/.ssh
     - eval "$(ssh-agent -s)"
     - chmod 600 "$GITHUB_DEPLOY_TOKEN"
+    # Diagnostic: reveals the key's type/fingerprint only, never its
+    # private material, to debug ssh-add failures without exposing the secret.
+    - ssh-keygen -l -f "$GITHUB_DEPLOY_TOKEN" || echo "ssh-keygen could not read key metadata either"
     - ssh-add "$GITHUB_DEPLOY_TOKEN"
     - ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
     - git remote add github-mirror "$GITHUB_MIRROR_URL"
