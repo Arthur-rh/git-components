@@ -109,8 +109,11 @@ mirror-github:
     # Diagnostic: GitHub always answers SSH auth with a message (success
     # or rejection) even for `-T`; safe to print, reveals no secrets.
     - ssh -T -o StrictHostKeyChecking=no git@github.com 2>&1 || true
+    # Diagnostic: GITHUB_MIRROR_URL isn't masked/secret, safe to print.
+    - echo "GITHUB_MIRROR_URL=$GITHUB_MIRROR_URL"
     - git remote add github-mirror "$GITHUB_MIRROR_URL"
-    - git push github-mirror "HEAD:refs/heads/main" --force
+    - git remote -v
+    - GIT_SSH_COMMAND="ssh -v" git push github-mirror "HEAD:refs/heads/main" --force
     # Push every tag, not just this one, so a release whose mirror push
     # previously failed gets backfilled by the next successful run.
     - git push github-mirror --tags --force
