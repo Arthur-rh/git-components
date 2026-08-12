@@ -104,7 +104,7 @@ Pushing the tag is what triggers the pipeline — nothing publishes just from pu
 The pipeline depends on three GitLab CI/CD variables (Settings → CI/CD → Variables), configured on the project already except where noted:
 - `PYPI_PUBLISH_TOKEN` (masked, protected) — a PyPI API token. For the very first release, this must be an account-scoped token, since the project won't exist on PyPI yet to scope a token to.
 - `GITHUB_MIRROR_URL` — the SSH URL of the public GitHub mirror (`git@github.com:owner/repo.git`).
-- `GITHUB_DEPLOY_TOKEN` (masked, protected) — an SSH deploy key (with write access) for the GitHub mirror, stored as GitLab requires: without its `-----BEGIN/END-----` markers and with internal line breaks stripped, since masked variables must be a single line with no whitespace. The pipeline reconstructs a normal OpenSSH private key from it.
+- `GITHUB_DEPLOY_TOKEN` (masked, **File** type) — an SSH deploy key (with write access) for the GitHub mirror. As a File-type variable its value is a path to a file GitLab populates with the key content, used directly by the pipeline (no reconstruction needed, unlike a masked env var).
 
 ## Authors and acknowledgment
 Arthur Richelet
