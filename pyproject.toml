@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "git-component"
-version = "0.1.1"
+version = "0.1.2"
 description = "Import selected content from external Git repositories into the current repository, using a declarative manifest and a lock."
 readme = "README.md"
 requires-python = ">=3.8"
