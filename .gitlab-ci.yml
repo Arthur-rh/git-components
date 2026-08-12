@@ -90,21 +90,20 @@ mirror-github:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - eval "$(ssh-agent -s)"
-    # SAFE DIAGNOSTIC ONLY (temporary): structural info about the raw
-    # file -- byte/line counts, and a hex dump of just the first/last 40
-    # bytes (where PEM boilerplate headers live, never the base64 body's
-    # secret material) -- to figure out its actual format instead of
-    # guessing again. No secret bytes are printed.
+    # GITHUB_DEPLOY_TOKEN's file content is the raw base64 *body* of a
+    # standard OpenSSH key (confirmed: it starts with the base64 for the
+    # "openssh-key-v1" magic header) -- no -----BEGIN/END----- markers,
+    # no internal line breaks, because GitLab writes the variable's
+    # literal value verbatim regardless of variable type. Reconstruct
+    # a normal key file from it.
     - |
-      echo "byte count: $(wc -c < "$GITHUB_DEPLOY_TOKEN")"
-      echo "line count: $(wc -l < "$GITHUB_DEPLOY_TOKEN")"
-      echo "first 40 bytes (hex+ascii):"
-      head -c 40 "$GITHUB_DEPLOY_TOKEN" | od -An -c
-      echo "last 40 bytes (hex+ascii):"
-      tail -c 40 "$GITHUB_DEPLOY_TOKEN" | od -An -c
-      echo "contains 'PRIVATE KEY' anywhere: $(grep -c 'PRIVATE KEY' "$GITHUB_DEPLOY_TOKEN" 2>/dev/null || echo 0)"
-      echo "contains 'BEGIN' anywhere: $(grep -c 'BEGIN' "$GITHUB_DEPLOY_TOKEN" 2>/dev/null || echo 0)"
-    - exit 1  # stop here until the diagnostic above is reviewed
+      {
+        echo "-----BEGIN OPENSSH PRIVATE KEY-----"
+        fold -w 64 "$GITHUB_DEPLOY_TOKEN"
+        echo "-----END OPENSSH PRIVATE KEY-----"
+      } > ~/.ssh/github_deploy_key
+      chmod 600 ~/.ssh/github_deploy_key
+    - ssh-add ~/.ssh/github_deploy_key
     - ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
     - git remote add github-mirror "$GITHUB_MIRROR_URL"
     - git push github-mirror "HEAD:refs/heads/main" --force
