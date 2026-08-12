@@ -90,11 +90,21 @@ mirror-github:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - eval "$(ssh-agent -s)"
-    - chmod 600 "$GITHUB_DEPLOY_TOKEN"
-    # Diagnostic: reveals the key's type/fingerprint only, never its
-    # private material, to debug ssh-add failures without exposing the secret.
-    - ssh-keygen -l -f "$GITHUB_DEPLOY_TOKEN" || echo "ssh-keygen could not read key metadata either"
-    - ssh-add "$GITHUB_DEPLOY_TOKEN"
+    # `ssh-keygen -l -f` on the raw file said "not a public key file" --
+    # not just an unsupported algorithm, it isn't recognizable as a key
+    # at all. Likely the value is base64-encoded (whole key, headers
+    # included, as one blob -- a standard trick for single-line-safe
+    # secrets). Try decoding first; fall back to the raw file as-is.
+    - |
+      if base64 -d "$GITHUB_DEPLOY_TOKEN" > ~/.ssh/github_deploy_key 2>/dev/null && grep -q "BEGIN.*PRIVATE KEY" ~/.ssh/github_deploy_key; then
+        echo "GITHUB_DEPLOY_TOKEN decodes from base64 to a private key; using the decoded form"
+      else
+        echo "GITHUB_DEPLOY_TOKEN does not decode to a recognizable key; using it as-is"
+        cp "$GITHUB_DEPLOY_TOKEN" ~/.ssh/github_deploy_key
+      fi
+      chmod 600 ~/.ssh/github_deploy_key
+    - ssh-keygen -l -f ~/.ssh/github_deploy_key || echo "ssh-keygen could not read key metadata either"
+    - ssh-add ~/.ssh/github_deploy_key
     - ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
     - git remote add github-mirror "$GITHUB_MIRROR_URL"
     - git push github-mirror "HEAD:refs/heads/main" --force
