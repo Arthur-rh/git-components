@@ -106,6 +106,9 @@ mirror-github:
       chmod 600 ~/.ssh/github_deploy_key
     - ssh-add ~/.ssh/github_deploy_key
     - ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+    # Diagnostic: GitHub always answers SSH auth with a message (success
+    # or rejection) even for `-T`; safe to print, reveals no secrets.
+    - ssh -T -o StrictHostKeyChecking=no git@github.com 2>&1 || true
     - git remote add github-mirror "$GITHUB_MIRROR_URL"
     - git push github-mirror "HEAD:refs/heads/main" --force
     # Push every tag, not just this one, so a release whose mirror push
